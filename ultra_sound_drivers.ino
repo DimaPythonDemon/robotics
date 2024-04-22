@@ -7,33 +7,46 @@
 unsigned long real_f_ultra_time;
 unsigned long real_r_ultra_time;
 
-long f_cm, r_cm;
+int f_cm, r_cm;
 
 char f = 'f';
 char r = 'r';
 char l = 'l';
 
-void setup() {
+double driver_k = 0.75;
 
+void setup() {
   // Инициализируем взаимодействие по последовательному порту
 
   Serial.begin (9600);
-  //Определяем вводы и выводы
+  //ультразвук
   pinMode(F_PIN_TRIG, OUTPUT);
   pinMode(F_PIN_ECHO, INPUT);
 
   pinMode(R_PIN_TRIG, OUTPUT);
   pinMode(R_PIN_ECHO, INPUT);
+
+  //Моторы
+  pinMode(4,OUTPUT);
+  pinMode(5,OUTPUT);
+  pinMode(6,OUTPUT);
+  pinMode(7,OUTPUT);
 }
+
+
+
+
 
 void loop() {
-  f_cm = measure_cm(f);
-  if (not(f_cm == -20)){
-    Serial.println(f_cm);
-  }
+  f_cm = measureCm(f, f_cm);
+  r_cm = measureCm(r, r_cm);
+  Serial.print("F: ");
+  Serial.print(f_cm);
+  Serial.print(" R: ");
+  Serial.println(r_cm);
 }
 
-long measure_cm(char side){
+int measureCm(char side, int prev_cm){
   if (side=='f'){
     if (millis()-real_f_ultra_time>250){
       long f_duration,f_cm;
@@ -56,7 +69,7 @@ long measure_cm(char side){
 
       return f_cm;
     }
-    else return -20;
+    else return prev_cm;
   }
   else{
     if (millis()-real_r_ultra_time>250){
@@ -80,7 +93,8 @@ long measure_cm(char side){
 
       return r_cm;
     }
-    else return -20;
+    else return prev_cm;
   }
 }
+
 
