@@ -16,26 +16,22 @@ char l = 'l';
 double driver_k = 0.75;
 
 void setup() {
-  // Инициализируем взаимодействие по последовательному порту
-
+  //инициализируем взаимодействие по последовательному порту
   Serial.begin (9600);
-  //ультразвук
+  
+  //датчики ультразвука
   pinMode(F_PIN_TRIG, OUTPUT);
   pinMode(F_PIN_ECHO, INPUT);
 
   pinMode(R_PIN_TRIG, OUTPUT);
   pinMode(R_PIN_ECHO, INPUT);
 
-  //Моторы
+  //моторы
   pinMode(4,OUTPUT);
   pinMode(5,OUTPUT);
   pinMode(6,OUTPUT);
   pinMode(7,OUTPUT);
 }
-
-
-
-
 
 void loop() {
   f_cm = measureCm(f, f_cm);
@@ -97,4 +93,65 @@ int measureCm(char side, int prev_cm){
   }
 }
 
+void ride(char motor, int spd){
+  if (motor == 'l'){
+    if (spd<0){
+      digitalWrite(7,0);
+      analogWrite(6, -spd);
+    }
+    else{
+      digitalWrite(7,1);
+      analogWrite(6, spd);
+    }
+  }
+  else {
+    if (spd<0){
+      digitalWrite(4,0);
+      analogWrite(5, -spd*k);
+    }
+    else{
+      digitalWrite(4,1);
+      analogWrite(5, spd*k);
+    }    
+  }
+}
 
+void forward(int speed){
+  ride(l,speed);
+  ride(r,speed);
+}
+
+void left(int speed){
+  ride(l,-speed);
+  ride(r,speed);
+}
+
+void right(int speed){
+  left(-speed);
+}
+
+void backward(int speed){
+  ride(l,-speed);
+  ride(r,-speed);
+}
+
+void pid_regul(){
+  double k = 0.3;
+  int spd = 110;
+  //перекрёсток
+  if (digitalRead(A1) and digitalRead(A2)){
+    forward(spd);
+  }
+  //левый на линии, правый - нет
+  else if (digitalRead(A2)){
+    ride(r, spd);
+    ride(l, spd*k);
+  }
+  else if (digitalRead(A1)){
+    ride(r, spd*k);
+    ride(l, spd);
+  }
+  else{
+    forward(0);
+  }
+}
