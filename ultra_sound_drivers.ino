@@ -34,7 +34,7 @@ int left_cube_counter = 0;
 
 int cur_perec_counter = 0;
 
-
+double driver_k = 0.8;
 //расстояние для бочки
 int right_circle_distance = 9;
 
@@ -130,7 +130,7 @@ void ride(char motor, int spd){
 
 void forward(int speed){
   ride(l,speed);
-  ride(r,speed);
+  ride(r,speed*driver_k);
 }
 
 void left(int speed){
@@ -143,8 +143,7 @@ void right(int speed){
 }
 
 void backward(int speed){
-  ride(l,-speed);
-  ride(r,-speed);
+  forward(-speed);
 }
 
 void pidLineRegul(int spd = 110){
@@ -156,10 +155,10 @@ void pidLineRegul(int spd = 110){
   //левый на линии, правый - нет
   else if (digitalRead(A2)){
     ride(r, spd);
-    ride(l, spd);
+    ride(l, spd*driver_k);
   }
   else if (digitalRead(A1)){
-    ride(r, spd);
+    ride(r, spd*driver_k);
     ride(l, spd);
   }
   else{
@@ -181,89 +180,74 @@ boolean start_turning = false;
 unsigned long start_turning_real_time;
 
 void loop() {
-//  left(60);
-//  delay(1000);
-//  stp();
-//  delay(500);
-//  right(60);
-//  delay(1000);
-//  stp();
-//  delay(500);
-  Serial.print("L:");
-  Serial.print(digitalRead(A1));
-  Serial.print("R:");
-  Serial.println(digitalRead(A2));
-  
-
-//  pidLineRegul(60);
-//  if (b1){
-//    Serial.println("PDREG");
-//    f_cm = measureCm(f, f_cm);
-//    if (f_cm > 10){
-//      pidLineRegul(80);  
-//    }
-//    else{
-//      b1 = false;
-//      b2 = true;
-//      stp();
-//      delay(500);
-//    }
-//  }
-//  else if (b2){
-//    Serial.println("turning");
-//    left(90);
-//    delay(500);
-//    stp();
-//    delay(1000);
-//    b2 = false;
-//    b3 = true;
-//  }
-//  else if (b3){
-//    Serial.println("CIRCLE");
-//    r_cm = measureCm(r, r_cm);
-//    circle(r_cm, turn_spd);  
-//    if (perec()){
-//      forward(100);
-//      delay(200);
-//      stp();
-//      delay(500);
-//      cur_perec_counter+=1;
-//      b3 = false;
-//      b4 = true;
-//      start_turning_real_time = millis();
-//    }
-//  }
-//  else if (b4){
-//    f_cm = measureCm(f, f_cm);
-//    r_cm = measureCm(r, r_cm);
-//    if (millis() - start_turning_real_time > 800){
-//      //замедляемся чтоб не проебать поворот
-//      left(74);
-//      if (r_cm < 15){
-//            stp();
-//            delay(500);
-//            b4 = false;
-//            if (cur_perec_counter<7) b3 = true;
-//            else b5 = true;      
-//      } 
-//    }
-//    else{
-//      if (f_cm > 30){
-//        left(76);
-//      }
-//      else{
-//        stp();
-//        right_cubs[right_cube_counter] = true;
-//        right_cube_counter += 1;
-//        b4 = false;
-//        if (cur_perec_counter<7) b3 = true;
-//        else b5 = true;
-//        while (measureCm(f, f_cm)>right_circle_distance)right(85);
-//        right(100);
-//        delay(500);
-//        stp();
-//        delay(500);
-//      }
-//    }
-//  }
+  if (b1){
+    Serial.println("PDREG");
+    f_cm = measureCm(f, f_cm);
+    if (f_cm > 12){
+      pidLineRegul(80);  
+    }
+    else{
+      b1 = false;
+      b2 = true;
+      stp();
+      delay(500);
+    }
+  }
+  else if (b2){
+    Serial.println("turning");
+    left(90);
+    delay(500);
+    stp();
+    delay(1000);
+    b2 = false;
+    b3 = true;
+  }
+  else if (b3){
+    Serial.println("CIRCLE");
+    r_cm = measureCm(r, r_cm);
+    circle(r_cm, turn_spd);  
+    if (perec()){
+      forward(100);
+      delay(200);
+      stp();
+      delay(500);
+      cur_perec_counter+=1;
+      b3 = false;
+      b4 = true;
+      start_turning_real_time = millis();
+    }
+  }
+  else if (b4){
+    f_cm = measureCm(f, f_cm);
+    r_cm = measureCm(r, r_cm);
+    if (millis() - start_turning_real_time > 800){
+      //замедляемся чтоб не проебать поворот
+      left(74);
+      if (r_cm < 15){
+            stp();
+            delay(500);
+            b4 = false;
+            if (cur_perec_counter<7) b3 = true;
+            else b5 = true;      
+      } 
+    }
+    else{
+      if (f_cm > 30){
+        left(76);
+      }
+      else{
+        stp();
+        right_cubs[right_cube_counter] = true;
+        right_cube_counter += 1;
+        b4 = false;
+        if (cur_perec_counter<7) b3 = true;
+        else b5 = true;
+        while (measureCm(f, f_cm)>right_circle_distance)right(85);
+        right(100);
+        delay(500);
+        stp();
+        delay(500);
+      }
+    }
+  }
 }
